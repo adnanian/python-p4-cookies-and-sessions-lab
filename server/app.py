@@ -22,13 +22,20 @@ def clear_session():
 
 @app.route('/articles')
 def index_articles():
+    return make_response(
+        [article.to_dict() for article in Article.query.all()],
+        200
+    )
 
-    pass
-
-@app.route('/articles/<int:id>')
+@app.route('/articles/<int:id>', methods=['GET'])
 def show_article(id):
-
-    pass
+    if article := Article.query.filter_by(id=id).first():
+        session['page_views'] = session.get('page_views') or 0
+        session['page_views'] += 1
+        if session['page_views'] <= 3:
+            return make_response(article.to_dict(), 200)
+        return make_response({'message': 'Maximum pageview limit reached'}, 401)
+    return make_response({'message': 'Record not found.'}, 404)
 
 if __name__ == '__main__':
     app.run(port=5555)
